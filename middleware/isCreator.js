@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
       next();
     })
     .catch((error) => {
-      console.log("You cannot change this free stuff", error);
+      console.log("You cannot modify this trip", error);
       next(error);
     });
 };

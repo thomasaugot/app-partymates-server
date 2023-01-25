@@ -1,7 +1,9 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
+const router = express.Router();
 
+const Trip = require("../models/Trip.model");
 const Event = require("../models/Event.model");
 const isCreator = require("../middleware/isAdmin");
 const isAuthenticated = require("../middleware/jwt.middleware");
@@ -9,38 +11,44 @@ const isAuthenticated = require("../middleware/jwt.middleware");
 //  Retrieves all the trips
 router.get("/trips", (req, res, next) => {
   Trip.find()
-    .populate("trips")
+    .populate("description")
     .then((allTrips) => res.json(allTrips))
     .catch((err) => res.json(err));
 });
 
 // Creates a new trip, Logged in only
-router.post("/trips", isAuthenticated, (req, res, next) => {
-  const { eventName, date, location, seatsAvailable, description } = req.body;
+router.post("/trips", (req, res, next) => {
 
-  Trip.create({ eventName, date, location, seatsAvailable, description })
+  const { eventId, description } = req.body;
+  // const creator = req.session.loggedUser._id;
+
+  Trip.create({ description, eventName: eventId})
     .then((newTrip) => {
       return Event.findByIdAndUpdate(eventId, {
-        $push: { trip: newTrip._id },
+        $push: { tripsOrganized: newTrip._id },
       });
     })
     .then((response) => res.json(response))
     .catch((err) => res.json(err));
 });
 
-// Retrieves a specific trip by id
+// Render a specific trip by id
 router.get("/trips/:tripId", (req, res, next) => {
-  const { tripId } = req.params;
+  const tripId = req.params.tripId;
 
   if (!mongoose.Types.ObjectId.isValid(tripId)) {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
   }
+
+  Trip.findById(tripId)
+  .then((response) => res.json(response))
+  .catch((err) => res.json(err));
 });
 
 // Updates a specific trip by id, creator only
-router.put("/trips/:tripId", isCreator, isAuthenticated, (req, res, next) => {
-  const { tripId } = req.params;
+router.put("/trips/:tripId", (req, res, next) => {
+  const tripId = req.params.tripId;
 
   if (!mongoose.Types.ObjectId.isValid(tripId)) {
     res.status(400).json({ message: "Specified id is not valid" });
@@ -53,15 +61,22 @@ router.put("/trips/:tripId", isCreator, isAuthenticated, (req, res, next) => {
 });
 
 //Delete a trip, creator only
-router.post("/trips/:tripId", isCreator, isAuthenticated, (req, res, next) => {
-  Trip.findByIdAndDelete(req.params)
-    .then(() => {
-      res.redirect("/trips");
+router.delete("/trips/:tripId", (req, res, next) => {
+
+  const tripId = req.params.tripId;
+
+  if (!mongoose.Types.ObjectId.isValid(tripId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  Trip.findByIdAndRemove(tripId)
+  .then(() =>
+    res.json({
+      message: `Trip has been removed successfully.`,
     })
-    .catch((err) => {
-      console.log("Error deleting event...", err);
-      next();
-    });
+  )
+  .catch((error) => res.json(error));
 });
 
 module.exports = router;

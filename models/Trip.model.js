@@ -8,20 +8,14 @@ const tripSchema = new Schema(
       ref: "Event",
       required: true,
     },
-    date: {
-      type: Date,
-      required: [true, "Please indicate your date and time of departure"],
-    },
-    location: {
+    description: {
       type: String,
-      required: [true, "Please indicate where you will depart from"],
+      required: [true, 'please provide a description before submitting' ]
     },
-    seatsAvailable: Number,
-    description: String,
-    creator: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+    // creator: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "User",
+    // },
   },
   {
     timestamps: true,
