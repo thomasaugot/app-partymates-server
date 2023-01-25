@@ -2,12 +2,11 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 
-const User = require("../models/User.model");
 const Event = require("../models/Event.model");
 const isAdmin = require("../middleware/isAdmin");
 
 //  Retrieves all the events
-router.get("/:cityId/events", (req, res, next) => {
+router.get("/events", (req, res, next) => {
   Event.find()
     .populate("events")
     .then((allEvents) => res.json(allEvents))
@@ -15,7 +14,7 @@ router.get("/:cityId/events", (req, res, next) => {
 });
 
 // Creates a new event, admin only
-router.post("/:cityId/events", isAdmin, (req, res, next) => {
+router.post("/events", isAdmin, (req, res, next) => {
   const { name, date, image, location, description, linkToTickets } = req.body;
 
   Event.create({ name, date, image, location, description, linkToTickets })
@@ -24,8 +23,8 @@ router.post("/:cityId/events", isAdmin, (req, res, next) => {
 });
 
 // Retrieves a specific event by id
-router.get("/:cityId/events/:eventId", (req, res, next) => {
-  const { eventId } = req.params.eventId;
+router.get("/events/:eventId", (req, res, next) => {
+  const { eventId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
     res.status(400).json({ message: "Specified id is not valid" });
@@ -33,14 +32,30 @@ router.get("/:cityId/events/:eventId", (req, res, next) => {
   }
 });
 
-//Delete an event
-router.post("/:cityId/events/:eventId/delete", isAdmin, (req, res, next) => {
-  Event.findByIdAndDelete(req.params.eventId)
+// Updates a specific event by id, admin only
+router.put("/events/:eventId", isAdmin, (req, res, next) => {
+    const { eventId } = req.params;
+  
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+  
+    Trip.findByIdAndUpdate(eventId, req.body, { new: true })
+      .then((updatedEvent) => res.json(updatedEvent))
+      .catch((err) => res.json(err));
+  });
+
+//Delete an event, admin only
+router.post("/events/:eventId/delete", isAdmin, (req, res, next) => {
+  Event.findByIdAndDelete(req.params)
     .then(() => {
-      res.redirect("/:cityId/events");
+      res.redirect("/events");
     })
     .catch((err) => {
       console.log("Error deleting event...", err);
       next();
     });
 });
+
+module.exports = router;
