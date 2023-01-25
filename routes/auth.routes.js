@@ -128,4 +128,9 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
   res.status(200).json(req.payload);
 });
 
+//User Profile
+router.get("/user-profile", isLoggedIn, (req, res) => {
+  res.render("users/user-profile", { userInSession: req.session.loggedUser });
+});
+
 module.exports = router;

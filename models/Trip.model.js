@@ -18,6 +18,10 @@ const tripSchema = new Schema(
     },
     seatsAvailable: Number,
     description: String,
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,
