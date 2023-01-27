@@ -12,10 +12,10 @@ const tripSchema = new Schema(
       type: String,
       required: [true, 'please provide a description before submitting' ]
     },
-    // creator: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "User",
-    // },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,

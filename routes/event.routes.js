@@ -27,7 +27,7 @@ router.post("/events", (req, res, next) => {
     description,
     linkToTickets,
     attendees: [],
-    tripsOrganized: []
+    tripsOrganized: [],
   })
     .then((response) => res.json(response))
     .catch((err) => res.json(err));
@@ -35,7 +35,6 @@ router.post("/events", (req, res, next) => {
 
 // Retrieves a specific event by id
 router.get("/events/:eventId", (req, res, next) => {
-
   const eventId = req.params.eventId;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
@@ -44,13 +43,13 @@ router.get("/events/:eventId", (req, res, next) => {
   }
 
   Event.findById(eventId)
+    .populate("tripsOrganized attendees")
     .then((response) => res.json(response))
     .catch((err) => res.json(err));
 });
 
 // Updates a specific event by id, admin only
 router.put("/events/:eventId", (req, res, next) => {
-
   const eventId = req.params.eventId;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
@@ -65,7 +64,6 @@ router.put("/events/:eventId", (req, res, next) => {
 
 //Delete an event, admin only
 router.delete("/events/:eventId", (req, res, next) => {
-
   const eventId = req.params.eventId;
 
   if (!mongoose.Types.ObjectId.isValid(eventId)) {

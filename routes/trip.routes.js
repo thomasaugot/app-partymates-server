@@ -6,7 +6,7 @@ const router = express.Router();
 const Trip = require("../models/Trip.model");
 const Event = require("../models/Event.model");
 const isCreator = require("../middleware/isAdmin");
-const isAuthenticated = require("../middleware/jwt.middleware");
+const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 //  Retrieves all the trips
 router.get("/trips", (req, res, next) => {
@@ -17,12 +17,12 @@ router.get("/trips", (req, res, next) => {
 });
 
 // Creates a new trip, Logged in only
-router.post("/trips", (req, res, next) => {
+router.post("/trips", isAuthenticated, (req, res, next) => {
 
-  const { eventId, description } = req.body;
-  // const creator = req.session.loggedUser._id;
+  const { description, eventId } = req.body;
+  const creator = req.payload._id
 
-  Trip.create({ description, eventName: eventId})
+  Trip.create({ description, eventName: eventId, creator})
     .then((newTrip) => {
       return Event.findByIdAndUpdate(eventId, {
         $push: { tripsOrganized: newTrip._id },
