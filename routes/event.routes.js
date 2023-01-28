@@ -57,7 +57,7 @@ router.put("/events/:eventId", (req, res, next) => {
     return;
   }
 
-  Trip.findByIdAndUpdate(eventId, req.body, { new: true })
+  Event.findByIdAndUpdate(eventId, req.body, { new: true })
     .then((updatedEvent) => res.json(updatedEvent))
     .catch((err) => res.json(err));
 });

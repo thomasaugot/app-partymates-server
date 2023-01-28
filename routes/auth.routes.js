@@ -129,8 +129,10 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 });
 
 //User Profile
-router.get("/user-profile", isAuthenticated, (req, res) => {
-  res.render("users/user-profile", { userInSession: req.session.loggedUser });
-});
+// router.get("/user-profile", isAuthenticated, (req, res) => {
+//   res.render("users/user-profile", { userInSession: req.session.loggedUser });
+// });
+
+
 
 module.exports = router;
