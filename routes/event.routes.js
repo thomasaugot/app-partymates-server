@@ -7,6 +7,22 @@ const Event = require("../models/Event.model");
 const Trip = require("../models/Trip.model");
 const isAdmin = require("../middleware/isAdmin");
 
+// let event = req.query.name.toLowerCase;
+// let mySort = { createdAt : -1 }
+// let filter = {}
+
+// if (event) {
+//     filter = { name : { $eq: name }}
+// }
+
+// router.get("/events", (req, res, next) => {
+//   // Event.find(filter.toLowerCase).sort(mySort)
+//   Event.find()
+//     .populate("name")
+//     .then((allEvents) => res.json(allEvents))
+//     .catch((err) => res.json(err));
+// });
+
 //  Render all the events
 router.get("/events", (req, res, next) => {
   Event.find()

@@ -128,11 +128,69 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
   res.status(200).json(req.payload);
 });
 
-//User Profile
-// router.get("/user-profile", isAuthenticated, (req, res) => {
-//   res.render("users/user-profile", { userInSession: req.session.loggedUser });
-// });
+// GET user profile
+router.get("/profile/:userId", isLoggedIn, (req, res, next) => {
+  const userId = req.params.userId;
 
+  let eventsAttending = [];
+  let trips = [];
 
+  Trip.find({ creator: userId })
+    .then((tripObj) => {
+      trips = tripObj;
+      return Event.find({ attendees: userId });
+    })
+    .then((eventObj) => {
+      eventsAttending = eventObj;
+      return User.findByIdAndUpdate(userId);
+    })
+    .then((userInSession) => {
+      const userData = {
+        trips: trips,
+        commentArr: commentArr,
+        userInSession: userInSession,
+      };
+      res.render("users/user-profile", userData);
+      console.log("success getting user")
+    })
+    .catch((error) => {
+      console.log(`Error getting user profile: ${error}`);
+      next();
+    });
+});
+
+// GET edit profile page
+router.get("/profile/:userId/edit", isLoggedIn, (req, res, next) => {
+
+  const userId = req.params.userId;
+
+  User.findById(userId)
+    .then((userInSession) => {
+      res.render("users/edit-profile", { userInSession });
+    })
+    .catch((error) => {
+      console.log(`Error updating user: ${error}`);
+      next();
+    });
+});
+
+// POST edit profile
+router.post("/profile/:userId/edit", isLoggedIn, (req, res, next) => {
+
+  const userId = req.params.userId;
+
+  let { name, email, password } = req.body;
+
+  User.findByIdAndUpdate(userId, { name, email, password }, { new: true })
+    .then((updatedUser) => {
+      req.session.currentUser = updatedUser;
+      res.redirect(`/auth/profile/${userId}`);
+    })
+    .catch((error) => {
+      res.redirect("/");
+      console.log(`Error updating user profile: ${error}`);
+      next();
+    });
+});
 
 module.exports = router;
