@@ -1,19 +1,13 @@
 const express = require("express");
 const router = express.Router();
-
-// ℹ️ Handles password encryption
 const bcrypt = require("bcrypt");
-
-// ℹ️ Handles password encryption
 const jwt = require("jsonwebtoken");
 
-// Require the User model in order to interact with the database
+// Require the models in order to interact with the database
 const User = require("../models/User.model");
 
 // Require necessary (isAuthenticated) middleware in order to control access to specific routes
 const { isAuthenticated } = require("../middleware/jwt.middleware.js");
-
-// How many rounds should bcrypt run the salt (default - 10 rounds)
 const saltRounds = 10;
 
 // POST /auth/signup  - Creates a new user in the database
@@ -129,42 +123,23 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 });
 
 // GET user profile
-router.get("/profile/:userId", isLoggedIn, (req, res, next) => {
-  const userId = req.params.userId;
-
-  let eventsAttending = [];
-  let trips = [];
-
-  Trip.find({ creator: userId })
-    .then((tripObj) => {
-      trips = tripObj;
-      return Event.find({ attendees: userId });
-    })
-    .then((eventObj) => {
-      eventsAttending = eventObj;
-      return User.findByIdAndUpdate(userId);
-    })
-    .then((userInSession) => {
-      const userData = {
-        trips: trips,
-        commentArr: commentArr,
-        userInSession: userInSession,
-      };
-      res.render("users/user-profile", userData);
-      console.log("success getting user")
-    })
-    .catch((error) => {
-      console.log(`Error getting user profile: ${error}`);
-      next();
-    });
-});
-
-// GET edit profile page
-router.get("/profile/:userId/edit", isLoggedIn, (req, res, next) => {
-
+router.get("/profile/:userId", isAuthenticated,(req, res, next) => {
+  // const userId = req.payload._id;
   const userId = req.params.userId;
 
   User.findById(userId)
+    .then((response) => {  
+      console.log(response.data)
+      res.json(response)})
+    .catch((err) => res.json(err));
+});
+
+// GET edit profile page
+router.get("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
+  const userId = req.payload._id;
+
+  User.findById(userId)
+    .populate("name")
     .then((userInSession) => {
       res.render("users/edit-profile", { userInSession });
     })
@@ -175,9 +150,8 @@ router.get("/profile/:userId/edit", isLoggedIn, (req, res, next) => {
 });
 
 // POST edit profile
-router.post("/profile/:userId/edit", isLoggedIn, (req, res, next) => {
-
-  const userId = req.params.userId;
+router.post("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
+  const userId = req.payload._id;
 
   let { name, email, password } = req.body;
 

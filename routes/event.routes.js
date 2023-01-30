@@ -6,6 +6,7 @@ const router = express.Router();
 const Event = require("../models/Event.model");
 const Trip = require("../models/Trip.model");
 const isAdmin = require("../middleware/isAdmin");
+const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 // let event = req.query.name.toLowerCase;
 // let mySort = { createdAt : -1 }
@@ -26,7 +27,8 @@ const isAdmin = require("../middleware/isAdmin");
 //  Render all the events
 router.get("/events", (req, res, next) => {
   Event.find()
-    .populate("name")
+    .populate("attendees")
+    .populate("tripsOrganized")
     .then((allEvents) => res.json(allEvents))
     .catch((err) => res.json(err));
 });
@@ -64,10 +66,9 @@ router.get("/events/:eventId", (req, res, next) => {
     .catch((err) => res.json(err));
 });
 
-// Updates a specific event by id, admin only
+// dont pass attendees to that route
 router.put("/events/:eventId", (req, res, next) => {
   const eventId = req.params.eventId;
-
   if (!mongoose.Types.ObjectId.isValid(eventId)) {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
@@ -77,6 +78,32 @@ router.put("/events/:eventId", (req, res, next) => {
     .then((updatedEvent) => res.json(updatedEvent))
     .catch((err) => res.json(err));
 });
+
+// Updates a specific event by id, admin only
+router.put("/events/:eventId/join", isAuthenticated, (req, res, next) => {
+  const eventId = req.params.eventId;
+  const { _id } = req.payload
+ 
+  console.log(req.payload)
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  Event.findById(eventId)
+    .then(response => {
+      if (response.attendees.includes(_id)){
+        return Event.findByIdAndUpdate(eventId, { $pull: { attendees: _id } }, { new: true })
+      } else {
+        return Event.findByIdAndUpdate(eventId, { $push: { attendees: _id } }, { new: true })
+      }
+    })
+    .then((updatedEvent) => res.json(updatedEvent))
+    .catch((err) => res.json(err));
+});
+
+
 
 //Delete an event, admin only
 router.delete("/events/:eventId", (req, res, next) => {
