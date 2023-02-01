@@ -5,10 +5,12 @@ const router = express.Router();
 
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 const User = require("../models/User.model");
+const Message = require("../models/Message.model");
 
-//GET all the messages from a user
-router.get(":userId/messages", isAuthenticated, (req, res, next) => {
-    User.findById()
+// GET all the messages from a user
+router.get("/messages", isAuthenticated, (req, res, next) => {
+    const userId = req.payload._id;
+    User.findById(userId)
       .populate("messages")
       .then((allMessages) => {
         console.log(allMessages);
@@ -18,20 +20,17 @@ router.get(":userId/messages", isAuthenticated, (req, res, next) => {
   });
 
 //POST user sends a message
-router.post(":userId/messages", isAuthenticated, (req, res, next) => {
+router.post("/messages", isAuthenticated, (req, res, next) => {
     const { recipient, content } = req.body;
     const creator = req.payload._id;
   
-    let newMessage;
-  
-    Message.create({ content, recipient: userId, creator })
+    Message.create({ content, recipient: recipient })
       .then((messageFromDB) => {
-        newMessage = messageFromDB;
         return User.findByIdAndUpdate(recipient, {
           $push: { messages: messageFromDB._id },
         });
       })
-      .then((response) => res.json(response))
+      .then((response) => res.status(201).json(response))
       .catch((err) => {
         console.log("error adding trip...", err);
         res.status(500).json(err);

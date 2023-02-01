@@ -3,6 +3,8 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const fileUploader = require("../config/cloudinary.config");
+ 
 // Require the models in order to interact with the database
 const User = require("../models/User.model");
 
@@ -140,6 +142,7 @@ router.get("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
 
   User.findById(userId)
     .populate("name")
+    .populate("trips")
     .then((userInSession) => {
       res.render("users/edit-profile", { userInSession });
     })
@@ -165,6 +168,35 @@ router.post("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
       console.log(`Error updating user profile: ${error}`);
       next();
     });
+});
+
+//add events to favorites
+router.post("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, next) => {
+  const eventId = req.params.eventId;
+  const userId = req.payload._id;
+
+  User.findByIdAndUpdate(userId, { $addToSet: { eventsAttending: eventId } }, { new:true }).select('-passwordHash')
+    .populate("eventsAttending")
+    .then((updatedUser) => {
+      console.log(updatedUser)
+      req.session.loggedUser = updatedUser.toObject();
+    })
+    .catch((err) => {
+      console.log("error getting favorites from DB", err);
+      next(err);
+    });
+});
+
+//POST for profile picture, Cloudinary
+router.post("/upload", fileUploader.single("profilePicture"), (req, res, next) => {
+  console.log("file is: ", req.file);
+
+  if (!req.file) {
+    next(new Error("No file uploaded!"));
+    return;
+  }
+
+  res.json({ fileUrl: req.file.path });
 });
 
 module.exports = router;

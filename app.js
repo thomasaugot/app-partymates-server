@@ -20,6 +20,7 @@ app.use("/auth", require("./routes/auth.routes"));
 app.use("/api", require("./routes/trip.routes"));
 app.use("/api", require("./routes/event.routes"));
 app.use('/api', require('./routes/auth.routes'));
+app.use('/api', require('./routes/message.routes'));
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);

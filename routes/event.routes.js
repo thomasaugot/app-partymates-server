@@ -61,8 +61,20 @@ router.get("/events/:eventId", (req, res, next) => {
   }
 
   Event.findById(eventId)
-    .populate("tripsOrganized attendees")
-    .then((response) => res.json(response))
+    .populate({
+      path : 'attendees',
+      select: "_id, name"
+    })
+    .populate({
+      path : 'tripsOrganized',
+      populate : {
+        path : 'creator',
+        select: "_id, name"
+      }
+    })
+    .then((response) => {
+      res.json(response)
+    })
     .catch((err) => res.json(err));
 });
 
