@@ -7,6 +7,7 @@ const Trip = require("../models/Trip.model");
 const Event = require("../models/Event.model");
 const isCreator = require("../middleware/isAdmin");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
+const User = require("../models/User.model");
 
 //  Retrieves all the trips
 router.get("/trips", (req, res, next) => {
@@ -24,14 +25,25 @@ router.post("/trips", isAuthenticated, (req, res, next) => {
   const { description, eventId } = req.body;
   const creator = req.payload._id;
 
+  let newTrip;
+
   Trip.create({ description, eventName: eventId, creator })
-    .then((newTrip) => {
+    .then((tripFromDB) => {
+      newTrip = tripFromDB;
       return Event.findByIdAndUpdate(eventId, {
-        $push: { tripsOrganized: newTrip._id },
+        $push: { tripsOrganized: tripFromDB._id },
+      });
+    })
+    .then((response) => {
+      return User.findByIdAndUpdate(creator, {
+        $push: { trips: newTrip._id },
       });
     })
     .then((response) => res.json(response))
-    .catch((err) => res.json(err));
+    .catch((err) => {
+      console.log("error adding trip...", err);
+      res.status(500).json(err);
+    });
 });
 
 // Render a specific trip by id

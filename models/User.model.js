@@ -17,6 +17,7 @@ const userSchema = new Schema(
     },
     profilePicture: {
       type: String,
+      trim: true,
     },
     password: {
       type: String,
@@ -24,6 +25,7 @@ const userSchema = new Schema(
     },
     eventsAttending: [{ type: Schema.Types.ObjectId, ref: "Event" }],
     trips: [{ type: Schema.Types.ObjectId, ref: "Trip" }],
+    messages: [{ type: Schema.Types.ObjectId, ref: "Message" }],
   },
   {
     timestamps: true,
