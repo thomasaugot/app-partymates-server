@@ -56,6 +56,13 @@ router.get("/trips/:tripId", (req, res, next) => {
   }
 
   Trip.findById(tripId)
+    .populate({
+      path: "creator eventName",
+      populate: {
+        path: "creator",
+        select: "_id, name",
+      }, 
+    })
     .then((response) => res.json(response))
     .catch((err) => res.json(err));
 });
@@ -83,12 +90,20 @@ router.delete("/trips/:tripId", (req, res, next) => {
     return;
   }
 
+  let creator
+  let eventName
+
   Trip.findByIdAndRemove(tripId)
-    .then(() =>
-      res.json({
-        message: `Trip has been removed successfully.`,
-      })
-    )
+    .then((trip) => {
+      creator = trip.creator
+      eventName = trip.eventName
+      return User.findByIdAndUpdate(creator, { $pull: { trips: tripId }}, { new: true })
+    })
+    .then((user) => {
+      console.log(user)
+      return Event.findByIdAndUpdate(eventName, { $pull: { tripsOrganized: tripId }}, { new: true } )
+    })
+    .then((response) => res.json('trip deleted everywhere'))
     .catch((error) => res.json(error));
 });
 

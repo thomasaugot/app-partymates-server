@@ -22,6 +22,7 @@ router.get("/messages", isAuthenticated, (req, res, next) => {
 //POST user sends a message
 router.post("/messages", isAuthenticated, (req, res, next) => {
     const { recipient, content } = req.body;
+    console.log(`This the console log from`,req.body)
     const creator = req.payload._id;
   
     Message.create({ content, recipient: recipient })

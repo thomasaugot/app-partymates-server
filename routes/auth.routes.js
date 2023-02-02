@@ -130,6 +130,12 @@ router.get("/profile/:userId", isAuthenticated,(req, res, next) => {
   const userId = req.params.userId;
 
   User.findById(userId)
+    .populate({
+      path: "trips",
+      populate: {
+      path: "creator eventName",
+      select: "-password",
+    }, })
     .then((response) => {  
       console.log(response.data)
       res.json(response)})
@@ -144,6 +150,7 @@ router.get("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
     .populate("name")
     .populate("trips")
     .then((userInSession) => {
+      console.log(userInSession)
       res.render("users/edit-profile", { userInSession });
     })
     .catch((error) => {
