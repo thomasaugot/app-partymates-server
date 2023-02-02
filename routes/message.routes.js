@@ -11,7 +11,13 @@ const Message = require("../models/Message.model");
 router.get("/messages", isAuthenticated, (req, res, next) => {
     const userId = req.payload._id;
     User.findById(userId)
-      .populate("messages")
+    .populate({
+      path: "messages",
+      populate: {
+        path: "creator",
+        select: "name",
+      }, 
+    })
       .then((allMessages) => {
         console.log(allMessages);
         res.json(allMessages);
@@ -25,7 +31,7 @@ router.post("/messages", isAuthenticated, (req, res, next) => {
     console.log(`This the console log from`,req.body)
     const creator = req.payload._id;
   
-    Message.create({ content, recipient: recipient })
+    Message.create({ content, recipient: recipient, creator })
       .then((messageFromDB) => {
         return User.findByIdAndUpdate(recipient, {
           $push: { messages: messageFromDB._id },

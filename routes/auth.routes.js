@@ -178,16 +178,21 @@ router.post("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
 });
 
 //add events to favorites
-router.post("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, next) => {
+router.put("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, next) => {
   const eventId = req.params.eventId;
   const userId = req.payload._id;
+  console.log(userId)
 
-  User.findByIdAndUpdate(userId, { $addToSet: { eventsAttending: eventId } }, { new:true }).select('-passwordHash')
-    .populate("eventsAttending")
-    .then((updatedUser) => {
-      console.log(updatedUser)
-      req.session.loggedUser = updatedUser.toObject();
+  User.findById(userId)
+    .then((response) => {
+      console.log(response)
+      if (response.eventsAttending.includes(eventId)){
+        return User.findByIdAndUpdate(userId, { $pull: { eventsAttending: eventId } }, { new: true })
+      } else {
+        return User.findByIdAndUpdate(userId, { $push: { eventsAttending: eventId } }, { new: true })
+      }
     })
+    .then((updatedUser) => res.json(updatedUser))
     .catch((err) => {
       console.log("error getting favorites from DB", err);
       next(err);
