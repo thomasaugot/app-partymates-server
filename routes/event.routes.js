@@ -115,8 +115,6 @@ router.put("/events/:eventId/join", isAuthenticated, (req, res, next) => {
     .catch((err) => res.json(err));
 });
 
-
-
 //Delete an event, admin only
 router.delete("/events/:eventId", (req, res, next) => {
   const eventId = req.params.eventId;

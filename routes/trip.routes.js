@@ -14,7 +14,6 @@ router.get("/trips", (req, res, next) => {
   Trip.find()
     .populate("creator", "-password")
     .then((allTrips) => {
-      console.log(allTrips);
       res.json(allTrips);
     })
     .catch((err) => res.json(err));
@@ -90,8 +89,8 @@ router.delete("/trips/:tripId", (req, res, next) => {
     return;
   }
 
-  let creator
-  let eventName
+  let creator;
+  let eventName;
 
   Trip.findByIdAndRemove(tripId)
     .then((trip) => {

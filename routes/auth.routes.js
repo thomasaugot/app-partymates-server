@@ -125,8 +125,7 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 });
 
 // GET user profile
-router.get("/profile/:userId", isAuthenticated,(req, res, next) => {
-  // const userId = req.payload._id;
+router.get("/profile/:userId", isAuthenticated, (req, res, next) => {
   const userId = req.params.userId;
 
   User.findById(userId)
@@ -137,7 +136,6 @@ router.get("/profile/:userId", isAuthenticated,(req, res, next) => {
       select: "-password",
     }, })
     .then((response) => {  
-      console.log(response.data)
       res.json(response)})
     .catch((err) => res.json(err));
 });
@@ -150,7 +148,6 @@ router.get("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
     .populate("name")
     .populate("trips")
     .then((userInSession) => {
-      console.log(userInSession)
       res.render("users/edit-profile", { userInSession });
     })
     .catch((error) => {
@@ -185,7 +182,6 @@ router.put("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, ne
 
   User.findById(userId)
     .then((response) => {
-      console.log(response)
       if (response.eventsAttending.includes(eventId)){
         return User.findByIdAndUpdate(userId, { $pull: { eventsAttending: eventId } }, { new: true })
       } else {
@@ -202,12 +198,10 @@ router.put("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, ne
 //POST for profile picture, Cloudinary
 router.post("/upload", fileUploader.single("profilePicture"), (req, res, next) => {
   console.log("file is: ", req.file);
-
   if (!req.file) {
     next(new Error("No file uploaded!"));
     return;
   }
-
   res.json({ fileUrl: req.file.path });
 });
 
