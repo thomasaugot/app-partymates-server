@@ -133,11 +133,16 @@ router.get("/profile/:userId", isAuthenticated, (req, res, next) => {
       path: "trips",
       populate: {
       path: "creator eventName",
-      select: "-password",
-    }, })
+      select: "-password",}
+    })
+    .populate("eventsAttending")
     .then((response) => {  
+      console.log(response)
       res.json(response)})
-    .catch((err) => res.json(err));
+    .catch((err) => {
+      console.log(err);
+      res.json(err)
+    });
 });
 
 // GET edit profile page
