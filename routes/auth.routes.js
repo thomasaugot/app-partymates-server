@@ -3,8 +3,6 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const fileUploader = require("../config/cloudinary.config");
- 
 // Require the models in order to interact with the database
 const User = require("../models/User.model");
 
@@ -132,21 +130,23 @@ router.get("/profile/:userId", isAuthenticated, (req, res, next) => {
     .populate({
       path: "trips",
       populate: {
-      path: "creator eventName",
-      select: "-password",}
+        path: "creator eventName",
+        select: "-password",
+      },
     })
     .populate("eventsAttending")
-    .then((response) => {  
-      console.log(response)
-      res.json(response)})
+    .then((response) => {
+      console.log(response);
+      res.json(response);
+    })
     .catch((err) => {
       console.log(err);
-      res.json(err)
+      res.json(err);
     });
 });
 
 // GET edit profile page
-router.get("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
+router.get("/profile/:userId/edit", isAuthenticated, (req, res, next) => {
   const userId = req.payload._id;
 
   User.findById(userId)
@@ -162,7 +162,7 @@ router.get("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
 });
 
 // POST edit profile
-router.post("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
+router.post("/profile/:userId/edit", isAuthenticated, (req, res, next) => {
   const userId = req.payload._id;
 
   let { name, email, password } = req.body;
@@ -183,14 +183,22 @@ router.post("/profile/:userId/edit", isAuthenticated,(req, res, next) => {
 router.put("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, next) => {
   const eventId = req.params.eventId;
   const userId = req.payload._id;
-  console.log(userId)
+  console.log(userId);
 
   User.findById(userId)
     .then((response) => {
-      if (response.eventsAttending.includes(eventId)){
-        return User.findByIdAndUpdate(userId, { $pull: { eventsAttending: eventId } }, { new: true })
+      if (response.eventsAttending.includes(eventId)) {
+        return User.findByIdAndUpdate(
+          userId,
+          { $pull: { eventsAttending: eventId } },
+          { new: true }
+        );
       } else {
-        return User.findByIdAndUpdate(userId, { $push: { eventsAttending: eventId } }, { new: true })
+        return User.findByIdAndUpdate(
+          userId,
+          { $push: { eventsAttending: eventId } },
+          { new: true }
+        );
       }
     })
     .then((updatedUser) => res.json(updatedUser))
@@ -200,14 +208,24 @@ router.put("/profile/:userId/favorites/:eventId", isAuthenticated, (req, res, ne
     });
 });
 
-//POST for profile picture, Cloudinary
-router.post("/upload", fileUploader.single("profilePicture"), (req, res, next) => {
-  console.log("file is: ", req.file);
-  if (!req.file) {
-    next(new Error("No file uploaded!"));
-    return;
-  }
-  res.json({ fileUrl: req.file.path });
+const multer = require("multer");
+
+// Set the destination folder for uploaded files
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const fileUploader = multer({ storage: storage });
+
+// Route for handling file uploads
+router.post("/upload", fileUploader.single("file"), function (req, res) {
+  // Do something with the uploaded file
+  console.log(req.file);
 });
 
 module.exports = router;
